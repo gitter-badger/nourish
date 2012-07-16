@@ -44,7 +44,7 @@ function json($v, $format = TRUE, $debug = FALSE) {
     exit;
 }
 
-function json_error($message, $a = NULL) {
+function json_error($m, $a = NULL) {
     $feed->status = 0;
     $feed->message = $m;
     if ($a !== NULL){
@@ -183,23 +183,4 @@ function skrsort($a, $subkey, $sort_flags = SORT_REGULAR) {
         $c[$key] = $a[$key];
     }
     return $c;
-}
-
-// Functions for above code
-// Recursive function to make sure we grab all the fields from all the tables - let's you WHERE on non-primary-table columns
-function build_fields($fields, $queried_tables, $primary_keys, $tables, $db, $full_structure = '', $table_structure = '') {
-    if ($table_structure !== '' and is_string($table_structure)) {
-        $table_structure_name = $table_structure;
-        global ${$table_structure};
-    }
-    foreach ($fields as $field) {
-        if (in_array($field, $primary_keys) and !in_array($tables[$field], $queried_tables)) {
-            $queried_tables[] = $tables[$field];
-            $more_fields = $full_structure[$tables[$field]];
-            $table_structure[$tables[$field]] = $more_fields;
-            $fields = array_values(array_unique(array_merge($fields, $more_fields)));
-            $fields = array_values(array_unique(array_merge(build_fields($fields, $queried_tables, $primary_keys, $tables, $db, $full_structure, $table_structure_name))));
-        }
-    }
-    return $fields;
 }
