@@ -1,4 +1,4 @@
-<?php
+<?
 
 // Allow user modules to hook POST fields
 $files = glob('./modules/*.php');
@@ -12,8 +12,8 @@ foreach ($files as $file) {
 
 // Loop over fields and call their hooks
 foreach ($full_structure[$q] as $field) {
+	$data['q'][$field] = $_POST['_' . $field];
 	foreach ($hooks as $hook) {
-		$data['q'][$field] = $_POST[$field];
 		$func = $hook . '_' . $method . '_' . $field;
 		$data[$hook][$field] = $func($data[$field]);
 	}
@@ -34,7 +34,7 @@ foreach ($data['q'] as $field => $input) {
 		}
 
 		if ($count > 1)
-			$errors[] = "$hook_$method_$field is trying to modify the same data as another hook. To prevent unexpected results, this requested operation was cancelled."
+			$errors[] = "$hook_$method_$field is trying to modify the same data as another hook. To prevent unexpected results, this requested operation was cancelled.";
 	}
 }
 
@@ -45,7 +45,7 @@ else {
 	// No errors, let's either update or insert our new data
 
 	// Set magic word variables
-	$_limit = $_GET['_limit'];
+	$_limit = $_POST['_limit'];
 
 	// Get fields from requested table
 	// Do we want to get all fields from all tables first? Probably. How to do this?
@@ -54,25 +54,24 @@ else {
 	// Build list of fields that we want to join on, as well as the general table structure for remapping columns
 	$queried_tables = array($q);
 	$table_structure[$q] = $fields;
-	$fields = build_fields($fields, $queried_tables, $primary_keys, $tables, $db, $full_structure, 'table_structure');
 
 	// Build WHERE from $field_op and $field_comb values
-	// Combinator values don't work very well because $_GET variables get sorted somehow. How to fix?
-	// Use $_GET['comb_order'] = fid,id,aid or similar? 
+	// Combinator values don't work very well because $_POST variables get sorted somehow. How to fix?
+	// Use $_POST['comb_order'] = fid,id,aid or similar? 
 	$where = array();
 	foreach ($fields as $field) {
-		if (!empty($_GET[$field])) {
-			$where[] = array($field, $_GET[$field], (!empty($_GET[$field . '__op']) ? $_GET[$field . '__op'] : '='), (!empty($_GET[$field . '__comb']) ? $_GET[$field . '__comb'] : 'AND'));
+		if (!empty($_POST[$field])) {
+			$where[] = array($field, $_POST[$field], (!empty($_POST[$field . '__op']) ? $_POST[$field . '__op'] : '='), (!empty($_POST[$field . '__comb']) ? $_POST[$field . '__comb'] : 'AND'));
 		}
 	}
 
 	// If we have a $where set, we're doing an UPDATE.
 	// Otherwise, INSERT.
 	if (!empty($where)) {
-		$query = update($q, $data['q'])->where($where);
+		$query = $db->update($q, $data['q'])->where($where);
 	}
 	else {
-		$query = insert($q, $data['q']);
+		$query = $db->insert($q, $data['q']);
 	}
 
 	// Set limit and offset based on GET request
@@ -84,8 +83,10 @@ else {
 
 	$results->results = $query->execute();
 	if (!$results->results) {
-		json_error('Query failed', $query->execute(1,1));
+		json_error('Query failed', array_merge($query->execute(1,1), array('return_value' => $results->results)));
 	}
 	// Uncomment the following line to include the query in the returned JSON for inspection
 	$results->query = $query->execute(1,1);
+
+	json((object) array_merge((array) $feed, (array) $results));
 }
