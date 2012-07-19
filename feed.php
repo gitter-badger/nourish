@@ -6,13 +6,25 @@ require('db' . DIRECTORY_SEPARATOR . 'db.inc');
 require('functions.inc');
 require('config.inc');
 
+// Get data for the requested database if available, otherwise default to the first database given
+if (!empty($_REQUEST['_db'])) {
+	$conn = $databases[$_REQUEST['_db']];
+
+	if (is_null($conn))
+		json_error('Invalid database requested');
+}
+else {
+	$conn = array_shift(array_values($databases));
+}
+
+// Open new DeltaBravo wrapper
 $db = new DatabaseConnection(
-	DB_HOSTNAME,
-	DB_DATABASE,
-	DB_USERNAME,
-	DB_PASSWORD,
-	DB_TYPE,
-	DB_ENCODING 
+	$conn['hostname'],
+	$conn['database'],
+	$conn['username'],
+	$conn['password'],
+	$conn['type'],
+	$conn['encoding'] 
 	);
 
 // Get all tables and primary columns from database

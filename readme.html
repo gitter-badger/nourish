@@ -1,0 +1,59 @@
+<style>
+* { font-family: Helvetica, Arial, sans-serif; }
+body { background: #333; color: #CCC; padding-bottom: 4em; }
+dl { padding: 1em 2em; background: #222; border-radius: 2em; margin: 1em 0; }
+dt { margin: 1em 0 0; font-weight: bold; }
+dd { margin-top: 0.5em 0 0 2em; }
+dl > *:last-child { margin-bottom: 1em; }
+</style>
+<h1>Nourish</h1>
+<p>Nourish is a flexible URL-to-query-to-JSON parser.</p>
+<h2>GET Usage</h2>
+<p>Nourish performs natural joins on any tables which have primary key names matching the names of any fields in the request table, _q.</p>
+<dl>
+	<h3>Special GET parameters:</h3>
+	<dt>_db</dt>
+	<dd>Database to load from config.inc.</dd>
+	<dd>Defaults to the first database in the array "$databases".</dd>
+	<dt>_q</dt>
+	<dd><em>Required: </em>Can alternatively provide _g.</dd>
+	<dd>Table within database to be loaded.</dd>
+	<dt>_g</dt>
+	<dd><em>Required: </em>Can alternatively provide _q.</dd>
+	<dd>Searches globally on all tables as per the config.inc array "$search_tables".</dd>
+	<dd>Results are provided keyed to their appropriate tables</dd>
+	<dt>_aliasing</dt>
+	<dd>_aliasing appends the table names to the field names if turned on.</dd>
+	<dd>Values are 0 or 1 (on or off).</dd>
+	<dd>Defaults to 0.</dd>
+	<dt>_primary</dt>
+	<dd>Keys the returned JSON by the given field. Empty string values or non-existent field values will cause this parameter to be ignored.</dd>
+	<dd>Values are fields in the requested table, _q.</dd>
+	<dd>Defaults to an empty string.</dd>
+	<dt>_primary_table</dt>
+	<dd>If _primary has been provided and _aliasing is on, _primary_table can be provided to specify which table should the _primary field should be loaded from.</dd>
+	<dd>Values are tables used within the query.</dd>
+	<dt>_overwrite</dt>
+	<dd>If _primary has been provided, overwrite will cause the returned JSON to only provide one value per key rather than an array when turned on.</dd>
+	<dd>Values are 0 or 1 (on or off).</dd>
+	<dd>Defaults to 0.</dd>
+	<dt>_join</dt>
+	<dd>An array of structure (table => field) on which requested tables are naturally joined.</dd>
+	<dd>Example: ...&amp;_join[table1]=table_1_primary_key&amp;_join[table2]=table_2_name_field...</dd>
+	<dt>_order</dt>
+	<dd>An array of structure (field => direction) which determines sorting of the returned JSON.</dd>
+	<dd>Valid directions are: ASC, DESC.</dd>
+	<dd>Example: ...&amp;_order[field1]=ASC&amp;_order[field2]=DESC...</dd>
+	<dt>_limit</dt>
+	<dd>Accepts an integer value n and returns only n results.</dd>
+	<dt>_offset</dt>
+	<dd>If _limit has been provided, _offset accepts an integer value n and skips the first n rows of the requested table, _q.</dd>
+	<dt>_search</dt>
+	<dd>Value upon which to search all fields of requested table, _q.</dd>
+</dl>
+<dl>
+	<h3>WHERE clause:</h3>
+	<dt><em>field_name</em> = <em>value</em></dt>
+	<dt><em>field_name</em>__op = <em>operator</em></dt>
+	<dt><em>field_name</em>__comb = <em>combinator</em></dt>
+</dl>
