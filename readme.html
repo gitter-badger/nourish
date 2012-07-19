@@ -1,27 +1,38 @@
 <style>
 * { font-family: Helvetica, Arial, sans-serif; }
-body { background: #333; color: #CCC; padding-bottom: 4em; }
-dl { padding: 1em 2em; background: #222; border-radius: 2em; margin: 1em 0; }
+::selection { background: #FFF; color: #333; text-shadow: 1px 1px 2px #D5D5D5; }
+body { background: #333; color: #CCC; padding-bottom: 4em; text-shadow: 1px 1px 4px #000; }
+strong { text-shadow: 2px 2px 8px #000; }
+dl { padding: 1em 2em; background: #222; border-radius: 2em; margin: 1em 0; box-shadow: inset 0 0 0.25em #000; }
 dt { margin: 1em 0 0; font-weight: bold; }
 dd { margin-top: 0.5em 0 0 2em; }
 dl > *:last-child { margin-bottom: 1em; }
+h1 a { text-decoration: none; }
+a { color: #CCC; }
+a:hover { text-shadow: 1px 1px 4px #000, 0 0 0.1em #DDD; color: #DDD; }
 </style>
-<h1>Nourish</h1>
+<h1 id="top"><a href="http://github.com/dambrisco/nourish">Nourish</a></h1>
 <p>Nourish is a flexible URL-to-query-to-JSON parser.</p>
-<h2>GET Usage</h2>
-<p>Nourish performs natural joins on any tables which have primary key names matching the names of any fields in the request table, _q.</p>
-<dl>
+<p>Nourish is built on <a href="http://en.wikipedia.org/wiki/Representational_state_transfer">RESTful</a> principles, but only supports GET and POST operations.</p>
+<p>At this time, Nourish provides limited module support for POST operations. This support will be extended to GET when it is no longer a "beta" feature.</p>
+<h2 id="get">GET Usage</h2>
+<p>Nourish performs natural joins on any tables which have primary key names matching the names of any fields in the request table, _q. It does not perform natural joins when using the _g option.</p>
+<dl id="get-special">
 	<h3>Special GET parameters:</h3>
+	<dt>_auth</dt>
+	<dd>Contains a secret key which you can set in config.inc.</dd>
+	<dd>If this key is set in config.inc and _auth is not provided or does not match the key, appropriate errors will be returned.</dd>
 	<dt>_db</dt>
 	<dd>Database to load from config.inc.</dd>
 	<dd>Defaults to the first database in the array "$databases".</dd>
-	<dt>_q</dt>
-	<dd><em>Required: </em>Can alternatively provide _g.</dd>
-	<dd>Table within database to be loaded.</dd>
 	<dt>_g</dt>
 	<dd><em>Required: </em>Can alternatively provide _q.</dd>
 	<dd>Searches globally on all tables as per the config.inc array "$search_tables".</dd>
 	<dd>Results are provided keyed to their appropriate tables</dd>
+	<dd><em>Using this parameter precludes the use of all following parameters.</em></dd>
+	<dt>_q</dt>
+	<dd><em>Required: </em>Can alternatively provide _g.</dd>
+	<dd>Table within database upon which operations will be performed.</dd>
 	<dt>_aliasing</dt>
 	<dd>_aliasing appends the table names to the field names if turned on.</dd>
 	<dd>Values are 0 or 1 (on or off).</dd>
@@ -49,11 +60,50 @@ dl > *:last-child { margin-bottom: 1em; }
 	<dt>_offset</dt>
 	<dd>If _limit has been provided, _offset accepts an integer value n and skips the first n rows of the requested table, _q.</dd>
 	<dt>_search</dt>
-	<dd>Value upon which to search all fields of requested table, _q.</dd>
+	<dd>Value upon which to search all fields of requested dataset.</dd>
 </dl>
-<dl>
+<dl id="get-where">
 	<h3>WHERE clause:</h3>
 	<dt><em>field_name</em> = <em>value</em></dt>
+	<dd>Pulls database entries where the provided field matches the provided value.</dd>
+	<dd>For "LIKE" comparisons, you'll need to add the appropriate "%"s into the value.</dd>
 	<dt><em>field_name</em>__op = <em>operator</em></dt>
+	<dd>Sets the operator to be used for this field comparison.</dd>
+	<dd>Can be any supported database operator (typically =, !=, &gt;, &gt;=, &lt;, &lt;, and LIKE).</dd>
+	<dd>Defaults to =.</dd>
 	<dt><em>field_name</em>__comb = <em>combinator</em></dt>
+	<dd>Sets the combinator to be used to join this field comparison with following field comparisons.</dd>
+	<dd>Can be any supported database combinator (typically AND and OR)</dd>
+	<dd>Defaults to AND.</dd>
 </dl>
+<h2 id="post">POST Usage</h2>
+<p>Nourish treats POST commands as UPDATE commands if a <a href="#get-where">WHERE clause</a> is included, otherwise it treats it as an INSERT.</p>
+<dl id="post-special">
+	<h3>Special GET parameters:</h3>
+	<dt>_auth</dt>
+	<dd>Contains a secret key which you can set in config.inc.</dd>
+	<dd>If this key is set in config.inc and _auth is not provided or does not match the key, appropriate errors will be returned.</dd>
+	<dt>_db</dt>
+	<dd>Database to load from config.inc.</dd>
+	<dd>Defaults to the first database in the array "$databases".</dd>
+	<dt>_q</dt>
+	<dd><em>Required</em>.</dd>
+	<dd>Table within database upon which operations will be performed.</dd>
+	<dt>_limit</dt>
+	<dd>Accepts an integer value n and updates or inserts only n values.</dd>
+	<dt>_offset</dt>
+	<dd>If _limit has been provided, _offset accepts an integer value n and skips the first n rows of the requested dataset.</dd>
+</dl>
+<dl id="post-where">
+	<h3>WHERE clause:</h3>
+	<p>Exactly the same as GET Usage's section on <a href="#get-where">WHERE clauses</a>.</p>
+	<p>To reiterate what was stated above: when a WHERE clause is provided, a POST operation is treated as an UPDATE. If a WHERE clause is not provided, it's treated as an INSERT.</p>
+</dl>
+<dl id="post-data">
+	<h3>POST data:</h3>
+	<dt>_<em>field_name</em> = <em>value</em></dt>
+	<dd>POSTed data is similar to the basic WHERE clause constructs, except the field name is preceeded by an underscore (e.g. "email" should be sent as "_email").</dd>
+	<dd>The value set here will be escaped using PDO's parameterization methods.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<p>For an example of Nourish in use, see the <a href="http://victorymanager.com/isae/ISAE_API-DOC.pdf">ISAE feed documentation</a> and the links contained therein.</p>

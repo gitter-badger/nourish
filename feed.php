@@ -6,6 +6,15 @@ require('db' . DIRECTORY_SEPARATOR . 'db.inc');
 require('functions.inc');
 require('config.inc');
 
+// First we check config.inc's $auth variable. If it's set and the user hasn't provided a matching variable, we throw an error.
+$_auth = (!empty($_GET['_auth']) ? $_GET['_auth'] : FALSE);
+if (isset($auth) and $auth !== '') {
+	if ($_auth === FALSE)
+		json_error('Credentials expected but not provided. Please append &_auth=<auth_string> to your query, where <auth_string> is the secret key set in the configuration file.');
+	elseif ($_auth !== $auth)
+		json_error('The secret key you provided does not match the key stored in the configuration file.');
+}
+
 // Get data for the requested database if available, otherwise default to the first database given
 if (!empty($_REQUEST['_db'])) {
 	$conn = $databases[$_REQUEST['_db']];

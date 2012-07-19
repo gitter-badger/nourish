@@ -13,3 +13,5 @@ $databases = array(
 
 $search_tables = array(
 	);
+
+$auth = '';
